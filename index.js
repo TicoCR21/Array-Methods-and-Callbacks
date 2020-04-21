@@ -14,12 +14,12 @@ import { fifaData } from './fifa.js';
 
 let fifaFinals = fifaData.filter( game => game[ 'Year' ] == 2014 && game[ 'Stage' ] === "Final" )[ 0 ];
 
-console.log( `2014 World Cup Final:\n
-                (a) Home Team: ${ fifaFinals[ 'Home Team Name' ] }\n
-                (b) Away Team: ${ fifaFinals[ 'Away Team Name' ] }\n
-                (c) Home Team Goals: ${ fifaFinals[ 'Home Team Goals' ] }\n
-                (d) Away Team Goals: ${ fifaFinals[ 'Away Team Goals' ] }\n
-                (e) 2014 World Cup Winner: ${ fifaFinals[ 'Home Team Name' ] }` );
+// console.log( `2014 World Cup Final:\n
+//                 (a) Home Team: ${ fifaFinals[ 'Home Team Name' ] }\n
+//                 (b) Away Team: ${ fifaFinals[ 'Away Team Name' ] }\n
+//                 (c) Home Team Goals: ${ fifaFinals[ 'Home Team Goals' ] }\n
+//                 (d) Away Team Goals: ${ fifaFinals[ 'Away Team Goals' ] }\n
+//                 (e) 2014 World Cup Winner: ${ fifaFinals[ 'Home Team Name' ] }` );
 
 /* Task 2: Create a function called  getFinals that takes `data` as an argument and returns an array of objects with only finals data */
 let getFinals = fifaData => fifaData.filter( game => game[ 'Stage' ] === "Final" ); 
@@ -57,61 +57,92 @@ function getCountryWins( fifaData, initials )
 {
     let countryName = "";
     let finals = getFinals( fifaData );
+
+    console.log( finals );
     let winners = getWinners( getFinals );
+    console.log( winners );
     
     for( let i = 0; i < finals.length; i++ )
-    {
-        if( finals[ i ][ 'Home Team Initials' ]  === initials )
+        if( finals[ i ][ 'Home Team Initials' ]  === initials || finals[ i ][ 'Away Team Initials' ]  === initials )
         {
-            countryName = finals[ i ][ 'Home Team Name' ];
+            countryName = ( finals[ i ][ 'Home Team Initials' ]  === initials ? finals[ i ][ 'Home Team Name' ] : finals[ i ][ "Away Team Name" ] );
             break;
         }
-        else if( finals[ i ][ 'Away Team Initials' ]  === initials )
-        {
-            countryName = finals[ i ][ "Away Team Name" ];
-            break;
-        }
-    }
+        
     return winners.reduce( ( val, winner ) => winner === countryName ? val + 1 : val, 0 );
 };
 
-//console.log( getCountryWins( fifaData, "" ) );
-
-
-
-// let x = [];
-
-// for( let i = 0; i < 10; i++)
-//     x.push( { "games" : 0, "gols" : 0 } );
-
-
-
+console.log( getCountryWins( fifaData, "ITA" ) );
 
 /* Task 8: Write a function called getGoals() that accepts a parameter `data` and returns the team with the most goals score per appearance (average goals for) in the World Cup finals */
 
-function getGoals( fifaData ) 
+function getGoals( fifa_finals ) 
 {
+    let team_records = {};
+    fifa_finals.forEach( function( game, index )
+    {
+        if( !( game[ "Home Team Name" ] in team_records ) )
+            team_records[ game[ "Home Team Name" ] ] = { games : 0, goals : 0 };
+        if( !( game[ "Away Team Name" ] in team_records ) )
+            team_records[ game[ "Away Team Name" ] ] = { games : 0, goals : 0 };
 
+        team_records[ game[ "Home Team Name" ] ][ 'games' ] += 1;
+        team_records[ game[ "Home Team Name" ] ][ 'goals' ] += game[ "Home Team Goals" ];
+        team_records[ game[ "Away Team Name" ] ][ 'games' ] += 1;
+        team_records[ game[ "Away Team Name" ] ][ 'goals' ] += game[ "Away Team Goals" ];
+    } );
 
+    let current_max = { team : "", goals : 0 };
+
+    for( let team_record in team_records )
+        if( team_records[ team_record ][ "goals" ] / team_records[ team_record ][ 'games' ] > current_max[ 'goals' ] )
+        {
+            current_max[ "team" ] = team_record;
+            current_max[ "goals" ] = team_records[ team_record ][ "goals" ] / team_records[ team_record ][ 'games' ]; 
+        }
+
+    return current_max[ "team" ];
 };
 
-getGoals( fifaData );
+//console.log( getGoals( getFinals( fifaData ) ) );
 
 
 /* Task 9: Write a function called badDefense() that accepts a parameter `data` and calculates the team with the most goals scored against them per appearance (average goals against) in the World Cup finals */
 
-function badDefense(/* code here */) {
+function badDefense( fifa_finals ) 
+{
+    let team_records = {};
+    fifa_finals.forEach( function( game, index )
+    {
+        if( !( game[ "Home Team Name" ] in team_records ) )
+            team_records[ game[ "Home Team Name" ] ] = { games : 0, goals : 0 };
+        if( !( game[ "Away Team Name" ] in team_records ) )
+            team_records[ game[ "Away Team Name" ] ] = { games : 0, goals : 0 };
 
-    /* code here */
+        team_records[ game[ "Home Team Name" ] ][ 'games' ] += 1;
+        team_records[ game[ "Home Team Name" ] ][ 'goals' ] += game[ "Away Team Goals" ];
+        team_records[ game[ "Away Team Name" ] ][ 'games' ] += 1;
+        team_records[ game[ "Away Team Name" ] ][ 'goals' ] += game[ "Home Team Goals" ];
+    } );
 
+    let current_max = { team : "", goals : 0 };
+
+    for( let team_record in team_records )
+        if( team_records[ team_record ][ "goals" ] / team_records[ team_record ][ 'games' ] > current_max[ 'goals' ] )
+        {
+            current_max[ "team" ] = team_record;
+            current_max[ "goals" ] = team_records[ team_record ][ "goals" ] / team_records[ team_record ][ 'games' ]; 
+        }
+
+    return current_max[ "team" ];
 };
 
-badDefense();
+//console.log( badDefense( getFinals( fifaData ) ) );
 
 
 /* Task 10: Write a function called `getAverageGoals` that accepts a parameter `data` and returns the the average number of home team goals and away team goals scored per match (Hint: use .reduce and do this in 2 steps) */
 
-function getAverageGoals(/* code here */) {
+function getAverageGoals(  ) {
 
     /* code here */
 
